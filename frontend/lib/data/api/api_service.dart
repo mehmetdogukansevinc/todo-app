@@ -73,4 +73,12 @@ class ApiService {
       throw e;
     }
   }
+
+  Future<List<dynamic>> getNotes(String token) async {
+    final response = await _dio.get(
+      '/notes',
+      options: Options(headers: {'Authorization': 'Bearer $token'}),
+    );
+    return response.data['data'];
+  }
 }

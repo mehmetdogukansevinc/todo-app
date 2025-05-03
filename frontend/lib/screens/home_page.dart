@@ -1,22 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:frontend/bloc/auth_state.dart';
 import '../bloc/auth_bloc.dart';
 import '../bloc/auth_event.dart';
-import '../bloc/auth_state.dart';
+import '../note/bloc/note_bloc.dart';
 import 'login_register_page.dart';
 
 class HomePage extends StatefulWidget {
+  const HomePage({super.key});
+
   @override
-  _HomePageState createState() => _HomePageState();
+  State<HomePage> createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    // Kullanıcı bilgilerini yükle
+    // Notları sayfa yüklendiğinde otomatik olarak getir
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<AuthBloc>().add(GetCurrentUserEvent());
+      context.read<NoteBloc>().add(FetchNotes());
     });
   }
 
@@ -24,7 +27,7 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Home Page'),
+        title: Text('Notlarım'),
         actions: [
           IconButton(
             onPressed: () {
@@ -38,37 +41,43 @@ class _HomePageState extends State<HomePage> {
           ),
         ],
       ),
-      body: BlocConsumer<AuthBloc, AuthState>(
+      body: BlocConsumer<NoteBloc, NoteState>(
         listener: (context, state) {
-          if (state is AuthError) {
+          if (state is NoteError) {
             ScaffoldMessenger.of(
               context,
             ).showSnackBar(SnackBar(content: Text(state.message)));
-          } else if (state is AuthLogoutSuccess) {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => LoginRegisterPage()),
-            );
           }
         },
         builder: (context, state) {
-          if (state is AuthUserLoaded) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    'Welcome, ${state.user['user']['username']}',
-                    style: TextStyle(fontSize: 20),
+          if (state is NoteLoading) {
+            return Center(child: CircularProgressIndicator());
+          } else if (state is NoteLoaded) {
+            final notes = state.notes;
+            return ListView.builder(
+              itemCount: notes.length,
+              itemBuilder: (context, index) {
+                final note = notes[index];
+                return ListTile(
+                  title: Text(note['title']),
+                  subtitle: Text(note['content']),
+                  trailing: Icon(
+                    note['completed'] ? Icons.check : Icons.close,
+                    color: note['completed'] ? Colors.green : Colors.red,
                   ),
-                  SizedBox(height: 20),
-                  Text('You are logged in successfully!'),
-                ],
-              ),
+                );
+              },
             );
+          } else {
+            return Center(child: Text('Hoş geldin!'));
           }
-          return Center(child: CircularProgressIndicator());
         },
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          context.read<NoteBloc>().add(FetchNotes());
+        },
+        child: Icon(Icons.refresh),
       ),
     );
   }
