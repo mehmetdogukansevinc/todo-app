@@ -3,6 +3,7 @@ const {
   register,
   login,
   getCurrentUser,
+  logout,
 } = require("../controllers/authController");
 const { protect } = require("../middleware/authMiddleware");
 
@@ -16,5 +17,8 @@ router.post("/login", login);
 
 // Get current user profile
 router.get("/me", protect, getCurrentUser);
+
+// Logout user
+router.post("/logout", protect, logout);
 
 module.exports = router;

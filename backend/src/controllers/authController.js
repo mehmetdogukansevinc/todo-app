@@ -122,3 +122,25 @@ exports.getCurrentUser = async (req, res) => {
     });
   }
 };
+
+// @desc    Logout user
+// @route   POST /api/auth/logout
+// @access  Private
+exports.logout = async (req, res) => {
+  try {
+    // JWT kullanıldığı için client tarafında token kaldırılmalıdır
+    // Sunucu tarafında logout kaydı tutabiliriz
+
+    res.status(200).json({
+      success: true,
+      message: "Logout başarılı",
+      data: {},
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Server Error",
+      error: error.message,
+    });
+  }
+};
