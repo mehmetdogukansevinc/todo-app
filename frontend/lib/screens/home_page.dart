@@ -4,6 +4,7 @@ import 'package:frontend/bloc/auth_state.dart';
 import '../bloc/auth_bloc.dart';
 import '../bloc/auth_event.dart';
 import '../note/bloc/note_bloc.dart';
+import '../note/models/note_model.dart';
 import 'login_register_page.dart';
 
 class HomePage extends StatefulWidget {
@@ -54,16 +55,21 @@ class _HomePageState extends State<HomePage> {
             return Center(child: CircularProgressIndicator());
           } else if (state is NoteLoaded) {
             final notes = state.notes;
+
+            if (notes.isEmpty) {
+              return Center(child: Text('Henüz not bulunmuyor.'));
+            }
+
             return ListView.builder(
               itemCount: notes.length,
               itemBuilder: (context, index) {
-                final note = notes[index];
+                final Note note = notes[index];
                 return ListTile(
-                  title: Text(note['title']),
-                  subtitle: Text(note['content']),
+                  title: Text(note.title),
+                  subtitle: Text(note.content),
                   trailing: Icon(
-                    note['completed'] ? Icons.check : Icons.close,
-                    color: note['completed'] ? Colors.green : Colors.red,
+                    note.completed ? Icons.check : Icons.close,
+                    color: note.completed ? Colors.green : Colors.red,
                   ),
                 );
               },

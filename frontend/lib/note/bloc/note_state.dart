@@ -7,7 +7,7 @@ class NoteInitial extends NoteState {}
 class NoteLoading extends NoteState {}
 
 class NoteLoaded extends NoteState {
-  final List<dynamic> notes;
+  final List<Note> notes;
 
   NoteLoaded(this.notes);
 }
