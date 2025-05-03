@@ -36,4 +36,12 @@ class ApiService {
       throw e;
     }
   }
+
+  Future<void> logout() async {
+    try {
+      await _dio.post('/auth/logout');
+    } on DioException catch (e) {
+      throw e;
+    }
+  }
 }

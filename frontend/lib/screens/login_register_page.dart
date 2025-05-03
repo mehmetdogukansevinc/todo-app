@@ -26,7 +26,7 @@ class _LoginRegisterPageState extends State<LoginRegisterPage> {
             ScaffoldMessenger.of(
               context,
             ).showSnackBar(SnackBar(content: Text('Başarılı!')));
-            Navigator.push(
+            Navigator.pushReplacement(
               context,
               MaterialPageRoute(builder: (context) => HomePage()),
             );

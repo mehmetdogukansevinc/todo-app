@@ -28,4 +28,13 @@ class AuthRepository {
       throw Exception('Giriş işlemi başarısız: ${e.toString()}');
     }
   }
+
+  Future<void> logout() async {
+    try {
+      await _apiService.logout();
+    } catch (e) {
+      print(e.toString());
+      throw Exception('Çıkış işlemi başarısız: ${e.toString()}');
+    }
+  }
 }
