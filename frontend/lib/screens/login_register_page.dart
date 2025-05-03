@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../bloc/auth_bloc.dart';
 import '../bloc/auth_event.dart';
 import '../bloc/auth_state.dart';
+import 'home_page.dart';
 
 class LoginRegisterPage extends StatefulWidget {
   @override
@@ -25,6 +26,10 @@ class _LoginRegisterPageState extends State<LoginRegisterPage> {
             ScaffoldMessenger.of(
               context,
             ).showSnackBar(SnackBar(content: Text('Başarılı!')));
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => HomePage()),
+            );
           } else if (state is AuthError) {
             ScaffoldMessenger.of(
               context,
