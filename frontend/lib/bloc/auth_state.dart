@@ -13,3 +13,9 @@ class AuthError extends AuthState {
 }
 
 class AuthLogoutSuccess extends AuthState {}
+
+class AuthUserLoaded extends AuthState {
+  final dynamic user;
+
+  AuthUserLoaded({required this.user});
+}

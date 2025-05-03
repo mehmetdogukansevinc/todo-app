@@ -1,13 +1,33 @@
 import 'package:dio/dio.dart';
+import 'package:hive/hive.dart';
 
 class ApiService {
-  final Dio _dio = Dio(
-    BaseOptions(
-      baseUrl: 'http://localhost:3000/api',
-      connectTimeout: const Duration(seconds: 5),
-      receiveTimeout: const Duration(seconds: 3),
-    ),
-  );
+  late Dio _dio;
+
+  ApiService() {
+    _dio = Dio(
+      BaseOptions(
+        baseUrl: 'http://localhost:3000/api',
+        connectTimeout: const Duration(seconds: 5),
+        receiveTimeout: const Duration(seconds: 3),
+      ),
+    );
+    _setupTokenInterceptor();
+  }
+
+  void _setupTokenInterceptor() {
+    _dio.interceptors.add(
+      InterceptorsWrapper(
+        onRequest: (options, handler) {
+          final token = Hive.box('authBox').get('token');
+          if (token != null) {
+            options.headers['Authorization'] = 'Bearer $token';
+          }
+          return handler.next(options);
+        },
+      ),
+    );
+  }
 
   Future<Response> register(
     String username,
@@ -40,6 +60,15 @@ class ApiService {
   Future<void> logout() async {
     try {
       await _dio.post('/auth/logout');
+    } on DioException catch (e) {
+      throw e;
+    }
+  }
+
+  Future<Response> getCurrentUser() async {
+    try {
+      final response = await _dio.get('/auth/me');
+      return response;
     } on DioException catch (e) {
       throw e;
     }

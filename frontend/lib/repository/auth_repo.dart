@@ -37,4 +37,14 @@ class AuthRepository {
       throw Exception('Çıkış işlemi başarısız: ${e.toString()}');
     }
   }
+
+  Future<dynamic> getCurrentUser() async {
+    try {
+      final response = await _apiService.getCurrentUser();
+      return response.data;
+    } catch (e) {
+      print(e.toString());
+      throw Exception('Kullanıcı bilgileri alınamadı: ${e.toString()}');
+    }
+  }
 }
