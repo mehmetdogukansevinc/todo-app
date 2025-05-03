@@ -74,6 +74,63 @@ Headers:
 Authorization: Bearer YOUR_JWT_TOKEN
 ```
 
+### Notes API (Auth Required)
+
+Tüm note endpointleri için Headers içinde JWT token gereklidir:
+
+```
+Authorization: Bearer YOUR_JWT_TOKEN
+```
+
+#### Get all notes
+
+```
+GET /api/notes
+```
+
+#### Get a single note
+
+```
+GET /api/notes/:id
+```
+
+#### Create a note
+
+```
+POST /api/notes
+```
+
+Request body:
+
+```json
+{
+  "title": "Not Başlığı",
+  "content": "Not içeriği burada"
+}
+```
+
+#### Update a note
+
+```
+PUT /api/notes/:id
+```
+
+Request body (all fields optional):
+
+```json
+{
+  "title": "Yeni Başlık",
+  "content": "Güncellenmiş içerik",
+  "completed": true
+}
+```
+
+#### Delete a note
+
+```
+DELETE /api/notes/:id
+```
+
 ## Flutter Integration
 
 In your Flutter app, you can use the `http` package to make requests to these endpoints:
