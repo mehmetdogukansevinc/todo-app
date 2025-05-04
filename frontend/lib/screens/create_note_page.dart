@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../note/bloc/note_bloc.dart';
+import '../note/models/note_model.dart';
 
 class CreateNotePage extends StatefulWidget {
   const CreateNotePage({Key? key}) : super(key: key);
@@ -28,12 +29,18 @@ class _CreateNotePageState extends State<CreateNotePage> {
         _isSubmitting = true;
       });
 
-      context.read<NoteBloc>().add(
-        CreateNoteEvent(
-          title: _titleController.text,
-          content: _contentController.text,
-        ),
+      // Not modelini oluştur
+      final note = Note(
+        id: '',
+        title: _titleController.text,
+        content: _contentController.text,
+        userId: '',
+        completed: false,
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
       );
+
+      context.read<NoteBloc>().add(CreateNoteEvent(note: note));
 
       Navigator.pop(context);
     }

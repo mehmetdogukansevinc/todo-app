@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:hive/hive.dart';
+import '../../../note/models/note_model.dart';
 
 class ApiService {
   late Dio _dio;
@@ -82,11 +83,11 @@ class ApiService {
     return response.data['data'];
   }
 
-  Future<dynamic> createNote(String token, String title, String content) async {
+  Future<dynamic> createNote(String token, Note note) async {
     final response = await _dio.post(
       '/notes',
       options: Options(headers: {'Authorization': 'Bearer $token'}),
-      data: {'title': title, 'content': content},
+      data: {'title': note.title, 'content': note.content},
     );
     return response.data['data'];
   }

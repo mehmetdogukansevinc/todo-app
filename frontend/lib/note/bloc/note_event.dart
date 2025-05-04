@@ -5,8 +5,7 @@ abstract class NoteEvent {}
 class FetchNotes extends NoteEvent {}
 
 class CreateNoteEvent extends NoteEvent {
-  final String title;
-  final String content;
+  final Note note;
 
-  CreateNoteEvent({required this.title, required this.content});
+  CreateNoteEvent({required this.note});
 }

@@ -31,7 +31,7 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
   ) async {
     emit(NoteLoading());
     try {
-      await noteRepository.createNote(event.title, event.content);
+      await noteRepository.createNote(event.note);
       final notes = await noteRepository.fetchNotes();
       emit(NoteLoaded(notes));
     } catch (e) {
