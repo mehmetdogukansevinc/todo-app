@@ -12,6 +12,7 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
 
   NoteBloc(this.noteRepository) : super(NoteInitial()) {
     on<FetchNotes>(_onFetchNotes);
+    on<CreateNoteEvent>(_onCreateNote);
   }
 
   Future<void> _onFetchNotes(FetchNotes event, Emitter<NoteState> emit) async {
@@ -21,6 +22,20 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
       emit(NoteLoaded(notes));
     } catch (e) {
       emit(NoteError('Notlar getirilemedi: ${e.toString()}'));
+    }
+  }
+
+  Future<void> _onCreateNote(
+    CreateNoteEvent event,
+    Emitter<NoteState> emit,
+  ) async {
+    emit(NoteLoading());
+    try {
+      await noteRepository.createNote(event.title, event.content);
+      final notes = await noteRepository.fetchNotes();
+      emit(NoteLoaded(notes));
+    } catch (e) {
+      emit(NoteError('Not oluşturulamadı: ${e.toString()}'));
     }
   }
 }

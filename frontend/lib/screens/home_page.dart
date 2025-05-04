@@ -5,6 +5,7 @@ import '../bloc/auth_bloc.dart';
 import '../bloc/auth_event.dart';
 import '../note/bloc/note_bloc.dart';
 import '../note/models/note_model.dart';
+import 'create_note_page.dart';
 import 'login_register_page.dart';
 
 class HomePage extends StatefulWidget {
@@ -79,11 +80,31 @@ class _HomePageState extends State<HomePage> {
           }
         },
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          context.read<NoteBloc>().add(FetchNotes());
-        },
-        child: Icon(Icons.refresh),
+      floatingActionButton: Column(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          FloatingActionButton(
+            heroTag: 'create',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => CreateNotePage()),
+              ).then((_) {
+                // Sayfadan döndüğünde notları yenile
+                context.read<NoteBloc>().add(FetchNotes());
+              });
+            },
+            child: Icon(Icons.add),
+          ),
+          SizedBox(height: 16),
+          FloatingActionButton(
+            heroTag: 'refresh',
+            onPressed: () {
+              context.read<NoteBloc>().add(FetchNotes());
+            },
+            child: Icon(Icons.refresh),
+          ),
+        ],
       ),
     );
   }

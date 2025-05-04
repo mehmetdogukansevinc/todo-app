@@ -81,4 +81,13 @@ class ApiService {
     );
     return response.data['data'];
   }
+
+  Future<dynamic> createNote(String token, String title, String content) async {
+    final response = await _dio.post(
+      '/notes',
+      options: Options(headers: {'Authorization': 'Bearer $token'}),
+      data: {'title': title, 'content': content},
+    );
+    return response.data['data'];
+  }
 }
