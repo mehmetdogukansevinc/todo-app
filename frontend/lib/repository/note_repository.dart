@@ -27,6 +27,21 @@ class NoteRepository {
     return Note.fromJson(noteJson);
   }
 
+  Future<Note> updateNote(String noteId, Note note) async {
+    final token = Hive.box('authBox').get('token');
+    if (token == null) {
+      throw Exception('Token bulunamadı');
+    }
+
+    print('Repository updateNote - noteId: $noteId');
+    print(
+      'Repository updateNote - note content: ${note.title}, ${note.content}, ${note.completed}',
+    );
+
+    final noteJson = await _apiService.updateNote(token, noteId, note);
+    return Note.fromJson(noteJson);
+  }
+
   Future<void> deleteNote(String noteId) async {
     final token = Hive.box('authBox').get('token');
     if (token == null) {

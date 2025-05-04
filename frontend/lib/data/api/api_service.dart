@@ -117,6 +117,52 @@ class ApiService {
     }
   }
 
+  Future<dynamic> updateNote(String token, String noteId, Note note) async {
+    try {
+      print('Updating note with ID: $noteId');
+      print('Full URL: ${_dio.options.baseUrl}/notes/$noteId');
+
+      final data = {
+        'title': note.title,
+        'content': note.content,
+        'completed': note.completed,
+      };
+      print('Data to be sent: $data');
+
+      final response = await _dio.put(
+        '/notes/$noteId',
+        options: Options(
+          headers: {'Authorization': 'Bearer $token'},
+          validateStatus: (status) => true, // Tüm HTTP durum kodlarını kabul et
+        ),
+        data: data,
+      );
+
+      print('Response status code: ${response.statusCode}');
+      print('Response data: ${response.data}');
+
+      if (response.statusCode == 404) {
+        throw Exception(
+          'Not bulunamadı (ID: $noteId). Doğru ID kullandığınızdan emin olun.',
+        );
+      }
+
+      if (response.data == null) {
+        throw Exception('API yanıtı boş');
+      }
+
+      if (response.data['data'] == null) {
+        // API yanıt vermişse ama data kısmı yoksa, doğrudan yanıtı kullan
+        return response.data;
+      }
+
+      return response.data['data'];
+    } catch (e) {
+      print('API error updating note: $e');
+      rethrow;
+    }
+  }
+
   Future<void> deleteNote(String token, String noteId) async {
     try {
       await _dio.delete(

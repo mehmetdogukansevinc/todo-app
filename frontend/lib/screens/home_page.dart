@@ -7,6 +7,7 @@ import '../note/bloc/note_bloc.dart';
 import '../note/models/note_model.dart';
 import 'create_note_page.dart';
 import 'login_register_page.dart';
+import 'update_note_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -61,6 +62,11 @@ class _HomePageState extends State<HomePage> {
               return Center(child: Text('Henüz not bulunmuyor.'));
             }
 
+            // Debug - not ID'lerini kontrol et
+            for (var note in notes) {
+              print('Loaded note ID: ${note.id}, Title: ${note.title}');
+            }
+
             return ListView.builder(
               itemCount: notes.length,
               itemBuilder: (context, index) {
@@ -113,6 +119,7 @@ class _HomePageState extends State<HomePage> {
                   },
                   onDismissed: (direction) {
                     // Not silindi, Bloc'a bildir
+                    print('Deleting note with ID: ${note.id}');
                     context.read<NoteBloc>().add(
                       DeleteNoteEvent(noteId: note.id),
                     );
@@ -124,6 +131,19 @@ class _HomePageState extends State<HomePage> {
                       note.completed ? Icons.check : Icons.close,
                       color: note.completed ? Colors.green : Colors.red,
                     ),
+                    onTap: () {
+                      // Not düzenleme sayfasına yönlendir
+                      print('Opening edit screen for note ID: ${note.id}');
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => UpdateNotePage(note: note),
+                        ),
+                      ).then((_) {
+                        // Sayfadan döndüğünde notları yenile
+                        context.read<NoteBloc>().add(FetchNotes());
+                      });
+                    },
                   ),
                 );
               },

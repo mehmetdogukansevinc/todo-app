@@ -10,6 +10,13 @@ class CreateNoteEvent extends NoteEvent {
   CreateNoteEvent({required this.note});
 }
 
+class UpdateNoteEvent extends NoteEvent {
+  final String noteId;
+  final Note updatedNote;
+
+  UpdateNoteEvent({required this.noteId, required this.updatedNote});
+}
+
 class DeleteNoteEvent extends NoteEvent {
   final String noteId;
 

@@ -13,6 +13,7 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
   NoteBloc(this.noteRepository) : super(NoteInitial()) {
     on<FetchNotes>(_onFetchNotes);
     on<CreateNoteEvent>(_onCreateNote);
+    on<UpdateNoteEvent>(_onUpdateNote);
     on<DeleteNoteEvent>(_onDeleteNote);
   }
 
@@ -51,6 +52,44 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
       } else {
         // Önceki durum yüklü değilse boş liste döndür
         emit(NoteLoaded([]));
+      }
+    }
+  }
+
+  Future<void> _onUpdateNote(
+    UpdateNoteEvent event,
+    Emitter<NoteState> emit,
+  ) async {
+    // Mevcut durumu sakla
+    final currentState = state;
+
+    if (currentState is NoteLoaded) {
+      try {
+        // Optimistik güncelleme - UI'da hemen göster
+        final updatedNotes = List<Note>.from(currentState.notes);
+        final index = updatedNotes.indexWhere(
+          (note) => note.id == event.noteId,
+        );
+
+        if (index != -1) {
+          updatedNotes[index] = event.updatedNote;
+          emit(NoteLoaded(updatedNotes));
+
+          // Backend'de güncelle
+          await noteRepository.updateNote(event.noteId, event.updatedNote);
+
+          // Başarılı olursa tüm notları yenile
+          final notes = await noteRepository.fetchNotes();
+          emit(NoteLoaded(notes));
+        } else {
+          emit(NoteError('Güncellenecek not bulunamadı'));
+          emit(currentState);
+        }
+      } catch (e) {
+        print('Error updating note: $e');
+        emit(NoteError('Not güncellenemedi: ${e.toString()}'));
+        // Hata durumunda eski duruma dön
+        emit(currentState);
       }
     }
   }
