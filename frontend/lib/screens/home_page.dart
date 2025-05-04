@@ -65,12 +65,65 @@ class _HomePageState extends State<HomePage> {
               itemCount: notes.length,
               itemBuilder: (context, index) {
                 final Note note = notes[index];
-                return ListTile(
-                  title: Text(note.title),
-                  subtitle: Text(note.content),
-                  trailing: Icon(
-                    note.completed ? Icons.check : Icons.close,
-                    color: note.completed ? Colors.green : Colors.red,
+
+                // Not ID kontrolü
+                if (note.id.isEmpty) {
+                  return ListTile(
+                    title: Text(note.title),
+                    subtitle: Text(note.content),
+                    trailing: Icon(
+                      note.completed ? Icons.check : Icons.close,
+                      color: note.completed ? Colors.green : Colors.red,
+                    ),
+                  );
+                }
+
+                return Dismissible(
+                  key: Key(note.id),
+                  background: Container(
+                    color: Colors.red,
+                    alignment: Alignment.centerRight,
+                    padding: EdgeInsets.symmetric(horizontal: 20),
+                    child: Icon(Icons.delete, color: Colors.white),
+                  ),
+                  direction: DismissDirection.endToStart,
+                  confirmDismiss: (direction) {
+                    return showDialog(
+                      context: context,
+                      builder:
+                          (context) => AlertDialog(
+                            title: Text('Notu Sil'),
+                            content: Text(
+                              'Bu notu silmek istediğinize emin misiniz?',
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed:
+                                    () => Navigator.of(context).pop(false),
+                                child: Text('İptal'),
+                              ),
+                              TextButton(
+                                onPressed:
+                                    () => Navigator.of(context).pop(true),
+                                child: Text('Sil'),
+                              ),
+                            ],
+                          ),
+                    );
+                  },
+                  onDismissed: (direction) {
+                    // Not silindi, Bloc'a bildir
+                    context.read<NoteBloc>().add(
+                      DeleteNoteEvent(noteId: note.id),
+                    );
+                  },
+                  child: ListTile(
+                    title: Text(note.title),
+                    subtitle: Text(note.content),
+                    trailing: Icon(
+                      note.completed ? Icons.check : Icons.close,
+                      color: note.completed ? Colors.green : Colors.red,
+                    ),
                   ),
                 );
               },

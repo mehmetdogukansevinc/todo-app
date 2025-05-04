@@ -26,4 +26,13 @@ class NoteRepository {
     final noteJson = await _apiService.createNote(token, note);
     return Note.fromJson(noteJson);
   }
+
+  Future<void> deleteNote(String noteId) async {
+    final token = Hive.box('authBox').get('token');
+    if (token == null) {
+      throw Exception('Token bulunamadı');
+    }
+
+    await _apiService.deleteNote(token, noteId);
+  }
 }

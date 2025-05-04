@@ -76,19 +76,56 @@ class ApiService {
   }
 
   Future<List<dynamic>> getNotes(String token) async {
-    final response = await _dio.get(
-      '/notes',
-      options: Options(headers: {'Authorization': 'Bearer $token'}),
-    );
-    return response.data['data'];
+    try {
+      final response = await _dio.get(
+        '/notes',
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
+      );
+
+      if (response.data == null || response.data['data'] == null) {
+        print('API response error: ${response.data}');
+        return [];
+      }
+
+      return response.data['data'];
+    } on DioException catch (e) {
+      print('API error getting notes: ${e.message}');
+      // Hata durumunda boş liste döndür
+      return [];
+    } catch (e) {
+      print('Unexpected error getting notes: $e');
+      return [];
+    }
   }
 
   Future<dynamic> createNote(String token, Note note) async {
-    final response = await _dio.post(
-      '/notes',
-      options: Options(headers: {'Authorization': 'Bearer $token'}),
-      data: {'title': note.title, 'content': note.content},
-    );
-    return response.data['data'];
+    try {
+      final response = await _dio.post(
+        '/notes',
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
+        data: {'title': note.title, 'content': note.content},
+      );
+
+      if (response.data == null || response.data['data'] == null) {
+        throw Exception('API response is null or missing data');
+      }
+
+      return response.data['data'];
+    } catch (e) {
+      print('API error creating note: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> deleteNote(String token, String noteId) async {
+    try {
+      await _dio.delete(
+        '/notes/$noteId',
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
+      );
+    } catch (e) {
+      print('API error deleting note: $e');
+      rethrow;
+    }
   }
 }

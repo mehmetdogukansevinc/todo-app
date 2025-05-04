@@ -19,21 +19,36 @@ class Note {
 
   // JSON'dan Note nesnesine dönüştürme
   factory Note.fromJson(Map<String, dynamic> json) {
-    return Note(
-      id: json['_id'] ?? '',
-      title: json['title'] ?? '',
-      content: json['content'] ?? '',
-      userId: json['user'] ?? '',
-      completed: json['completed'] ?? false,
-      createdAt:
-          json['createdAt'] != null
-              ? DateTime.parse(json['createdAt'])
-              : DateTime.now(),
-      updatedAt:
-          json['updatedAt'] != null
-              ? DateTime.parse(json['updatedAt'])
-              : DateTime.now(),
-    );
+    try {
+      return Note(
+        id: json['_id'] ?? json['id'] ?? '',
+        title: json['title'] ?? '',
+        content: json['content'] ?? '',
+        userId: json['user'] ?? '',
+        completed: json['completed'] ?? false,
+        createdAt:
+            json['createdAt'] != null
+                ? DateTime.parse(json['createdAt'])
+                : DateTime.now(),
+        updatedAt:
+            json['updatedAt'] != null
+                ? DateTime.parse(json['updatedAt'])
+                : DateTime.now(),
+      );
+    } catch (e) {
+      print('Note model parse error: $e');
+      print('Problem JSON: $json');
+      // Hata durumunda default bir Note nesnesi döndür
+      return Note(
+        id: '',
+        title: 'Hata: Yüklenemedi',
+        content: 'Bu notun yüklenmesi sırasında bir hata oluştu.',
+        userId: '',
+        completed: false,
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      );
+    }
   }
 
   // Note nesnesinden JSON'a dönüştürme
