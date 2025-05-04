@@ -25,7 +25,9 @@ class AuthRepository {
       return response.data['token'];
     } catch (e) {
       print(e.toString());
-      throw Exception('Giriş işlemi başarısız: ${e.toString()}');
+      throw Exception(
+        'Yanlış email veya şifre girdiniz. Lütfen tekrar deneyiniz.',
+      );
     }
   }
 

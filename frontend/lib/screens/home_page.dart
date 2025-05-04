@@ -16,7 +16,9 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
+  late AnimationController _fabAnimationController;
+
   @override
   void initState() {
     super.initState();
@@ -24,13 +26,36 @@ class _HomePageState extends State<HomePage> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<NoteBloc>().add(FetchNotes());
     });
+
+    _fabAnimationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 300),
+    );
+  }
+
+  @override
+  void dispose() {
+    _fabAnimationController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
+      backgroundColor: Colors.grey[50],
       appBar: AppBar(
-        title: Text('Notlarım'),
+        elevation: 0,
+        backgroundColor: theme.colorScheme.primary,
+        title: Text(
+          'Notlarım',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+            fontSize: 22,
+          ),
+        ),
         actions: [
           IconButton(
             onPressed: () {
@@ -40,26 +65,60 @@ class _HomePageState extends State<HomePage> {
                 MaterialPageRoute(builder: (context) => LoginRegisterPage()),
               );
             },
-            icon: Icon(Icons.logout),
+            icon: Icon(Icons.logout, color: Colors.white),
+            tooltip: 'Çıkış Yap',
           ),
         ],
       ),
       body: BlocConsumer<NoteBloc, NoteState>(
         listener: (context, state) {
           if (state is NoteError) {
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(SnackBar(content: Text(state.message)));
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(state.message),
+                behavior: SnackBarBehavior.floating,
+                backgroundColor: Colors.redAccent,
+              ),
+            );
           }
         },
         builder: (context, state) {
           if (state is NoteLoading) {
-            return Center(child: CircularProgressIndicator());
+            return Center(
+              child: CircularProgressIndicator(
+                color: theme.colorScheme.primary,
+              ),
+            );
           } else if (state is NoteLoaded) {
             final notes = state.notes;
 
             if (notes.isEmpty) {
-              return Center(child: Text('Henüz not bulunmuyor.'));
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.note_alt_outlined,
+                      size: 80,
+                      color: Colors.grey[400],
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Henüz not bulunmuyor.',
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: Colors.grey[600],
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Yeni not eklemek için + butonuna tıklayın',
+                      style: TextStyle(fontSize: 14, color: Colors.grey[500]),
+                    ),
+                  ],
+                ),
+              );
             }
 
             // Debug - not ID'lerini kontrol et
@@ -67,89 +126,98 @@ class _HomePageState extends State<HomePage> {
               print('Loaded note ID: ${note.id}, Title: ${note.title}');
             }
 
-            return ListView.builder(
-              itemCount: notes.length,
-              itemBuilder: (context, index) {
-                final Note note = notes[index];
+            return Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: ListView.builder(
+                itemCount: notes.length,
+                itemBuilder: (context, index) {
+                  final Note note = notes[index];
 
-                // Not ID kontrolü
-                if (note.id.isEmpty) {
-                  return ListTile(
-                    title: Text(note.title),
-                    subtitle: Text(note.content),
-                    trailing: Icon(
-                      note.completed ? Icons.check : Icons.close,
-                      color: note.completed ? Colors.green : Colors.red,
+                  // Not ID kontrolü
+                  if (note.id.isEmpty) {
+                    return _buildNoteCard(note, canDismiss: false);
+                  }
+
+                  return Dismissible(
+                    key: Key(note.id),
+                    background: Container(
+                      margin: const EdgeInsets.symmetric(vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.red[400],
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      alignment: Alignment.centerRight,
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: const Icon(Icons.delete, color: Colors.white),
                     ),
-                  );
-                }
-
-                return Dismissible(
-                  key: Key(note.id),
-                  background: Container(
-                    color: Colors.red,
-                    alignment: Alignment.centerRight,
-                    padding: EdgeInsets.symmetric(horizontal: 20),
-                    child: Icon(Icons.delete, color: Colors.white),
-                  ),
-                  direction: DismissDirection.endToStart,
-                  confirmDismiss: (direction) {
-                    return showDialog(
-                      context: context,
-                      builder:
-                          (context) => AlertDialog(
-                            title: Text('Notu Sil'),
-                            content: Text(
-                              'Bu notu silmek istediğinize emin misiniz?',
+                    direction: DismissDirection.endToStart,
+                    confirmDismiss: (direction) {
+                      return showDialog(
+                        context: context,
+                        builder:
+                            (context) => AlertDialog(
+                              title: const Text('Notu Sil'),
+                              content: const Text(
+                                'Bu notu silmek istediğinize emin misiniz?',
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed:
+                                      () => Navigator.of(context).pop(false),
+                                  child: Text(
+                                    'İptal',
+                                    style: TextStyle(color: Colors.grey[700]),
+                                  ),
+                                ),
+                                ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.red[400],
+                                  ),
+                                  onPressed:
+                                      () => Navigator.of(context).pop(true),
+                                  child: const Text('Sil'),
+                                ),
+                              ],
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
                             ),
-                            actions: [
-                              TextButton(
-                                onPressed:
-                                    () => Navigator.of(context).pop(false),
-                                child: Text('İptal'),
-                              ),
-                              TextButton(
-                                onPressed:
-                                    () => Navigator.of(context).pop(true),
-                                child: Text('Sil'),
-                              ),
-                            ],
-                          ),
-                    );
-                  },
-                  onDismissed: (direction) {
-                    // Not silindi, Bloc'a bildir
-                    print('Deleting note with ID: ${note.id}');
-                    context.read<NoteBloc>().add(
-                      DeleteNoteEvent(noteId: note.id),
-                    );
-                  },
-                  child: ListTile(
-                    title: Text(note.title),
-                    subtitle: Text(note.content),
-                    trailing: Icon(
-                      note.completed ? Icons.check : Icons.close,
-                      color: note.completed ? Colors.green : Colors.red,
-                    ),
-                    onTap: () {
-                      // Not düzenleme sayfasına yönlendir
-                      print('Opening edit screen for note ID: ${note.id}');
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => UpdateNotePage(note: note),
-                        ),
-                      ).then((_) {
-                        // Sayfadan döndüğünde notları yenile
-                        context.read<NoteBloc>().add(FetchNotes());
-                      });
+                      );
                     },
-                  ),
-                );
-              },
+                    onDismissed: (direction) {
+                      // Not silindi, Bloc'a bildir
+                      print('Deleting note with ID: ${note.id}');
+                      context.read<NoteBloc>().add(
+                        DeleteNoteEvent(noteId: note.id),
+                      );
+                    },
+                    child: _buildNoteCard(note),
+                  );
+                },
+              ),
             );
           } else {
-            return Center(child: Text('Hoş geldin!'));
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.emoji_emotions,
+                    size: 70,
+                    color: theme.colorScheme.primary,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Hoş geldin!',
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: theme.colorScheme.primary,
+                    ),
+                  ),
+                ],
+              ),
+            );
           }
         },
       ),
@@ -158,6 +226,8 @@ class _HomePageState extends State<HomePage> {
         children: [
           FloatingActionButton(
             heroTag: 'create',
+            backgroundColor: theme.colorScheme.primary,
+            elevation: 4,
             onPressed: () {
               Navigator.push(
                 context,
@@ -167,17 +237,79 @@ class _HomePageState extends State<HomePage> {
                 context.read<NoteBloc>().add(FetchNotes());
               });
             },
-            child: Icon(Icons.add),
+            child: const Icon(Icons.add, color: Colors.white),
           ),
-          SizedBox(height: 16),
+          const SizedBox(height: 16),
           FloatingActionButton(
             heroTag: 'refresh',
+            backgroundColor: theme.colorScheme.secondary,
+            elevation: 4,
             onPressed: () {
+              _fabAnimationController.reset();
+              _fabAnimationController.forward();
               context.read<NoteBloc>().add(FetchNotes());
             },
-            child: Icon(Icons.refresh),
+            child: RotationTransition(
+              turns: Tween(
+                begin: 0.0,
+                end: 1.0,
+              ).animate(_fabAnimationController),
+              child: const Icon(Icons.refresh, color: Colors.white),
+            ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildNoteCard(Note note, {bool canDismiss = true}) {
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 2),
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+        title: Text(
+          note.title,
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+        ),
+        subtitle: Padding(
+          padding: const EdgeInsets.only(top: 8.0),
+          child: Text(
+            note.content,
+            style: TextStyle(color: Colors.grey[700], fontSize: 14),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+        trailing: Container(
+          decoration: BoxDecoration(
+            color: note.completed ? Colors.green[100] : Colors.red[100],
+            borderRadius: BorderRadius.circular(20),
+          ),
+          padding: const EdgeInsets.all(8),
+          child: Icon(
+            note.completed ? Icons.check : Icons.close,
+            color: note.completed ? Colors.green[700] : Colors.red[700],
+            size: 20,
+          ),
+        ),
+        onTap:
+            canDismiss
+                ? () {
+                  // Not düzenleme sayfasına yönlendir
+                  print('Opening edit screen for note ID: ${note.id}');
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => UpdateNotePage(note: note),
+                    ),
+                  ).then((_) {
+                    // Sayfadan döndüğünde notları yenile
+                    context.read<NoteBloc>().add(FetchNotes());
+                  });
+                }
+                : null,
       ),
     );
   }
